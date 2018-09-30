@@ -1,0 +1,31 @@
+蜂鸣器实验j
+int g;//定义变量 g
+int beep = 8;//定义蜂鸣器接口为数字8 接口
+int flameVal = 0; //存储火焰传感器数据
+//声音太短，效果不是很明显
+void buzzer()//蜂鸣器发出“嘀”声音子程序
+{
+  for(g=0;g<80;g++)
+  {
+    digitalWrite(beep,HIGH);//发声音
+    delay(1);//延时 1ms
+    digitalWrite(beep,LOW);//不发声音
+    delay(1);//延时 ms
+  }
+}
+
+void setup() {
+  pinMode(beep, OUTPUT); //定义beep 为输出接口
+}
+
+void loop() {
+  flameVal = analogRead(A0); //读取火焰传感器的模拟值
+  if (flameVal >= 100) //当模拟值大于100时蜂鸣器鸣响，阈值根据实际测试进行修改
+  {
+     buzzer();//蜂鸣器发出声音
+  }
+  else
+  {
+    digitalWrite(beep, LOW);
+  }
+}
