@@ -1,0 +1,32 @@
+#include <IRremote.h>
+#include <ir_Lego_PF_BitStreamEncoder.h>
+#include <boarddefs.h>
+#include <IRremote.h>
+int RECV_PIN = 11; // 红外一体化接收头连接到Arduino 11号引脚
+int LEDpin = 13; //定义LED输出引脚
+IRrecv irrecv(RECV_PIN);
+decode_results results; // 用于存储编码结果的对象
+void setup()
+{
+    pinMode(LEDpin,OUTPUT);
+    Serial.begin(9600);
+    irrecv.enableIRIn(); // 初始化红外解码
+}
+void loop() {
+    if (irrecv.decode(&results))
+    { 
+        Serial.println( results.value,HEX);
+        if( results.value == 0xFFA25D) //若收到按键ON按下的编码，打开LED
+       {
+           digitalWrite(LEDpin,HIGH);
+       }
+       else if(results.value==0xFFE21D) //收到OFF按下的编码，关闭LED
+       {
+           digitalWrite(LEDpin,LOW);
+       }
+    irrecv.resume(); // 接收下一个编码
+    }
+}
+
+
+
