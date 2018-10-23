@@ -1,0 +1,101 @@
+#include <IRremote.h>
+int RECV_PIN = 8;
+IRrecv irrecv(RECV_PIN);
+decode_results results; // 用于存储编码结果的对象
+
+int pwm = 50;   //小车速度
+int which = 0;
+
+//zuoyoudianji
+int EN1 = 6;
+int EN2 = 5;
+//zhuansu
+int IN1 = 7;
+int IN2 = 4;
+
+void Motor1(int pwm, boolean reverse)
+{
+  analogWrite(EN1, pwm);
+  if (reverse)
+    digitalWrite(IN1, HIGH);
+  else
+    digitalWrite(IN1, LOW);
+}
+void Motor2(int pwm, boolean reverse)
+{
+  analogWrite(EN2, pwm);
+  if (reverse)
+    digitalWrite(IN2, HIGH);
+  else
+    digitalWrite(IN2, LOW);
+}
+
+void setup()
+{
+  for (int i = 4; i <= 7; i++)
+    pinMode(i, OUTPUT);
+  irrecv.enableIRIn();
+}
+
+void forward() {
+  Motor1(pwm, true);
+  Motor2(pwm, true);
+}
+
+void back() {
+  Motor1(pwm, false);
+  Motor2(pwm, false);
+}
+
+void left() {
+  Motor1(pwm, false);
+  Motor2(pwm, true);
+}
+
+void right() {
+  Motor1(pwm, true);
+  Motor2(pwm, false);
+}
+
+void motionless() {
+  Motor1(0, false);
+  Motor2(0, false);
+}
+
+void loop() {
+  if (irrecv.decode(&results)) {
+    judgeMotion(results.value);
+    irrecv.resume();
+  }
+}
+
+void judgeMotion(int value) {
+  switch (value) {
+    case 0xFF30CF: forward(); which = 1; break; //1代表前进
+    case 0xFF18E7: back(); which = 2; break; //2代表后退
+    case 0xFF7A85: left(); which = 3; break; //3代表左转
+    case 0xFF10EF: right(); which = 4; break; //4代表右转
+    case 0xFF38C7: motionless(); which = 0; break; //5代表停止
+
+    case 0xFF02FD://快退代表减速
+      if (pwm >= 10) pwm -= 10;
+      else pwm = 0;
+      updateSpeed();
+      break;
+    case 0xFFC23D://快进代表加速
+      if (pwm <= 90) pwm += 10;
+      else pwm = 100;
+      updateSpeed();
+      break;
+  }
+}
+
+void updateSpeed() {
+  switch (which) {
+    case 0: motionless(); break;
+    case 1: forward(); break;
+    case 2: back(); break;
+    case 3: left(); break;
+    case 4: right(); break;
+  }
+}

@@ -1,0 +1,97 @@
+#include <MsTimer2.h>
+//电机控制引脚
+int EN1 = 6;
+int EN2 = 5;
+int IN1 = 7;
+int IN2 = 4;
+
+//三路巡线传感器引脚
+int SR = 10;
+int SM = 13;
+int SL = 11;
+
+int state = 1;
+int pwm = 65;
+
+void Motor1(int pwm, boolean reverse)
+{
+  analogWrite(EN1, pwm);
+  if (reverse)
+    digitalWrite(IN1, HIGH);
+  else
+    digitalWrite(IN1, LOW);
+}
+
+void Motor2(int pwm, boolean reverse)
+{
+  analogWrite(EN2, pwm);
+  if (reverse)
+    digitalWrite(IN2, HIGH);
+  else
+    digitalWrite(IN2, LOW);
+}
+
+void setup()
+{
+  for (int i = 4; i <= 7; i++)
+    pinMode(i, OUTPUT);
+  for (int i = 10; i <= 12; i++) {
+    pinMode(i, INPUT);
+  }
+  MsTimer2::set(15, line_tracking);
+  MsTimer2::start();
+}
+
+void forward() {
+  Motor1(pwm, true);
+  Motor2(pwm, true);
+}
+
+void back() {
+  Motor1(pwm, false);
+  Motor2(pwm, false);
+}
+
+void right() {
+  Motor1(pwm, false);
+  Motor2(pwm, true);
+}
+
+void left() {
+  Motor1(pwm, true);
+  Motor2(pwm, false);
+}
+
+void motionless() {
+  Motor1(0, false);
+  Motor2(0, false);
+}
+
+void loop() {
+}
+
+void line_tracking() {
+  int sl_value = digitalRead(SL);
+  int sm_value = digitalRead(SM);
+  int sr_value = digitalRead(SR);
+
+  if (sm_value == LOW && sl_value == HIGH && sr_value == HIGH) {
+    state = 1;
+    forward();
+  }
+  else if (sl_value == HIGH && sr_value == LOW) {
+    state = 2;
+    right();
+  }
+  else if (sl_value == LOW && sr_value == HIGH) {
+    state = 3;
+    left();
+  }
+  else {
+    switch (state) {
+      case 1: forward(); break;
+      case 2: right(); break;
+      case 3: left(); break;
+    }
+  }
+}

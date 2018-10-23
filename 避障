@@ -1,0 +1,116 @@
+#define IN1 4  //motor2的正反转
+#define IN4 7  //motor1的正反转
+#define PWMA 6  //motor2的调速
+#define PWMB 5  //motor1的调速
+int InfraredSensorPin1 = 8;//Connect the signal pin to the digital pin 2
+int InfraredSensorPin2 = 2;//Connect the signal pin to the digital pin 3
+int InfraredSensorPin3 = 3;//Connect the signal pin to the digital pin 8
+int Speed = 0;//初始化的速度,速度为正则为正向运动
+int Right = 0;//标志位，如果为0表示没有右拐，如果为1表示正在右拐
+int Left = 0;//标志位，如果为0表示没有左拐，如果为1表示正在左拐
+int Sta = 0;//在三个都亮的情况下，判断是不是通过2号检测到左转的情况，如果是的话，右转，如果不是的话，继续左转
+
+void TurnLeft()
+{
+  if (Right == 1)
+    ;
+  else
+  {
+    if (Left == 0) {
+      Left = 1;
+      Speed = 0;
+      analogWrite(PWMA, Speed);
+      analogWrite(PWMB, Speed);
+    }
+    Speed = 75;
+    digitalWrite(IN1, LOW);
+    analogWrite(PWMA, Speed);
+    digitalWrite(IN4, HIGH);
+    analogWrite(PWMB, Speed);//左拐
+  }
+}
+
+void TurnRight()
+{
+  if (Right == 0)
+  {
+    Right = 1;
+    Speed = 0;
+    analogWrite(PWMA, Speed);
+    analogWrite(PWMB, Speed);
+  }
+  Speed = 75;
+  digitalWrite(IN1, HIGH);
+  analogWrite(PWMA, Speed);
+  digitalWrite(IN4, LOW);
+  analogWrite(PWMB, Speed);//右拐
+}
+
+void GoStraight()
+{
+  if (Right == 1 || Left == 1)
+  {
+    Right = 0;
+    Left = 0;
+    Speed = 0;
+    analogWrite(PWMA, Speed);
+    analogWrite(PWMB, Speed);
+  }
+  Speed = 75;
+  digitalWrite(IN1, HIGH);
+  analogWrite(PWMA, Speed);
+  digitalWrite(IN4, HIGH);
+  analogWrite(PWMB, Speed);//前进
+}
+
+void setup()
+{
+  pinMode(InfraredSensorPin1, INPUT);
+  pinMode(InfraredSensorPin2, INPUT);
+  pinMode(InfraredSensorPin3, INPUT);
+  pinMode(IN1, OUTPUT);
+  pinMode(IN4, OUTPUT);
+}
+void loop()
+{
+  if (digitalRead(InfraredSensorPin1) == LOW && digitalRead(InfraredSensorPin2) == LOW && digitalRead(InfraredSensorPin3) == HIGH)
+  {
+    // 灭 亮 亮    左转
+    TurnLeft();
+  }
+  else if (digitalRead(InfraredSensorPin1) == LOW && digitalRead(InfraredSensorPin2) == LOW && digitalRead(InfraredSensorPin3) == LOW)
+  {
+    //亮 亮 亮    左转
+    TurnLeft();
+  }
+  else if (digitalRead(InfraredSensorPin1) == HIGH && digitalRead(InfraredSensorPin2) == LOW && digitalRead(InfraredSensorPin3) == LOW)
+  {
+    //亮 亮 灭  右转
+    TurnRight();
+  }
+  else if (digitalRead(InfraredSensorPin1) == HIGH && digitalRead(InfraredSensorPin2) == LOW && digitalRead(InfraredSensorPin3) == HIGH)
+  {
+    //灭 亮 灭   左转
+    TurnLeft();
+  }
+  else if (digitalRead(InfraredSensorPin1) == HIGH && digitalRead(InfraredSensorPin2) == HIGH && digitalRead(InfraredSensorPin3) == HIGH)
+  {
+    //灭 灭 灭   直走
+    GoStraight();
+  }
+  else if (digitalRead(InfraredSensorPin1) == HIGH && digitalRead(InfraredSensorPin2) == HIGH && digitalRead(InfraredSensorPin3) == LOW)
+  {
+    //亮 灭 灭     右转
+    TurnRight();
+  }
+  else if (digitalRead(InfraredSensorPin1) == LOW && digitalRead(InfraredSensorPin2) == HIGH && digitalRead(InfraredSensorPin3) == HIGH)
+  {
+    //灭 灭 亮    左转
+    TurnLeft();
+  }
+  else if (digitalRead(InfraredSensorPin1) == LOW && digitalRead(InfraredSensorPin2) == HIGH && digitalRead(InfraredSensorPin3) == LOW)
+  {
+    //亮 灭 亮    左转
+    TurnLeft();
+  }
+}
